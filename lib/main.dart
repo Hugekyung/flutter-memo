@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MeMOMO',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(primarySwatch: Colors.indigo),
       home: const MemoListScreen(),
     );
   }
@@ -25,18 +25,46 @@ class MemoListScreen extends StatefulWidget {
 }
 
 class _MemoListScreenState extends State<MemoListScreen> {
-  List<String> memos = [];
+  List<String> memos = []; // * 메모를 저장하는 리스트
 
+  // * 메모 추가
   void _addMemo(String memo) {
-    setState(() {
-      memos.add(memo);
-    });
+    if (memo.isNotEmpty) {
+      // * 값이 공백이 아닐 경우 메모 생성
+      setState(() {
+        memos.add(memo);
+      });
+    } else {
+      // * 값이 공백이면 에러 모달
+      _showErrorDialog(context);
+    }
   }
 
+  // * 메모 삭제
   void _deleteMemo(int index) {
     setState(() {
       memos.removeAt(index);
     });
+  }
+
+  void _showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('내용이 없어요.'),
+          content: const Text('메모 내용을 입력해주세요.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -59,13 +87,11 @@ class _MemoListScreenState extends State<MemoListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final memo = await Navigator.push(
+          final String memo = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => MemoComposeScreen()),
           );
-          if (memo != null) {
-            _addMemo(memo);
-          }
+          _addMemo(memo);
         },
         child: const Icon(Icons.add),
       ),
@@ -82,7 +108,7 @@ class MemoComposeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Memo'),
+        title: const Text('Quick Memo'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
