@@ -25,10 +25,10 @@ class MemoListScreen extends StatefulWidget {
 }
 
 class _MemoListScreenState extends State<MemoListScreen> {
-  List<String> memos = []; // * 메모를 저장하는 리스트
+  List<List<String>> memos = []; // * 메모를 저장하는 리스트
 
   // * 메모 추가
-  void _addMemo(String memo) {
+  void _addMemo(List<String> memo) {
     if (memo.isNotEmpty) {
       // * 값이 공백이 아닐 경우 메모 생성
       setState(() {
@@ -59,7 +59,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('확인'),
+              child: const Icon(Icons.check),
             ),
           ],
         );
@@ -77,7 +77,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
         itemCount: memos.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(memos[index]),
+            title: Text(memos[index][0]),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () => _deleteMemo(index),
@@ -87,7 +87,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final String memo = await Navigator.push(
+          final List<String> memo = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => MemoComposeScreen()),
           );
@@ -100,7 +100,8 @@ class _MemoListScreenState extends State<MemoListScreen> {
 }
 
 class MemoComposeScreen extends StatelessWidget {
-  final TextEditingController _memoController = TextEditingController();
+  final TextEditingController _memoTitle = TextEditingController();
+  final TextEditingController _memoContent = TextEditingController();
 
   MemoComposeScreen({super.key});
 
@@ -116,14 +117,19 @@ class MemoComposeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
-              controller: _memoController,
-              maxLines: null,
-              decoration: const InputDecoration(hintText: 'Write something...'),
+              controller: _memoTitle,
+              maxLines: 1,
+              decoration: const InputDecoration(hintText: '제목'),
+            ),
+            TextField(
+              controller: _memoContent,
+              maxLines: 5,
+              decoration: const InputDecoration(hintText: '내용을 적어주세요'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                final newMemo = _memoController.text;
+                final newMemo = [_memoTitle.text, _memoContent.text];
                 Navigator.pop(context, newMemo);
               },
               child: const Text('Save'),
