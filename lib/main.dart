@@ -134,14 +134,13 @@ class _MemoListScreenState extends State<MemoListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final List<String> memo = await Navigator.push(
+          final memo = await Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (context) => const MemoComposeScreen(
-                      memo: [],
-                    )),
+            MaterialPageRoute(builder: (context) => const MemoComposeScreen()),
           );
-          _addMemo(memo);
+          if (memo != null) {
+            _addMemo(memo);
+          }
         },
         child: const Icon(Icons.add),
       ),
