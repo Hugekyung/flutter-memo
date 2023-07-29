@@ -29,8 +29,8 @@ class _MemoListScreenState extends State<MemoListScreen> {
 
   // * 메모 추가
   void _addMemo(List<String> memo) {
-    if (memo.isNotEmpty) {
-      // * 값이 공백이 아닐 경우 메모 생성
+    if (memo[0].isNotEmpty) {
+      // * 제목이 공백이 아닐 경우 메모 생성
       setState(() {
         memos.add(memo);
       });
@@ -42,6 +42,38 @@ class _MemoListScreenState extends State<MemoListScreen> {
 
   // * 메모 삭제
   void _deleteMemo(int index) {
+    _showDeleteConfirmationDialog(context, index);
+  }
+
+  // * 메모 삭제 여부 모달
+  void _showDeleteConfirmationDialog(BuildContext context, int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('경고'),
+          content: const Text('정말로 이 메모를 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteConfirmed(index);
+                Navigator.of(context).pop();
+              },
+              child: const Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteConfirmed(int index) {
     setState(() {
       memos.removeAt(index);
     });
