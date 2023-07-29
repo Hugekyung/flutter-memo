@@ -45,6 +45,20 @@ class _MemoListScreenState extends State<MemoListScreen> {
     _showDeleteConfirmationDialog(context, index);
   }
 
+  // * 메모 업데이트
+  void _editMemo(int index) async {
+    final editedMemo = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => MemoComposeScreen(memo: memos[index])),
+    );
+    if (editedMemo != null) {
+      setState(() {
+        memos[index] = editedMemo;
+      });
+    }
+  }
+
   // * 메모 삭제 여부 모달
   void _showDeleteConfirmationDialog(BuildContext context, int index) {
     showDialog(
@@ -110,6 +124,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(memos[index][0]),
+            onTap: () => _editMemo(index),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () => _deleteMemo(index),
@@ -121,7 +136,10 @@ class _MemoListScreenState extends State<MemoListScreen> {
         onPressed: () async {
           final List<String> memo = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => MemoComposeScreen()),
+            MaterialPageRoute(
+                builder: (context) => const MemoComposeScreen(
+                      memo: [],
+                    )),
           );
           _addMemo(memo);
         },
@@ -131,17 +149,33 @@ class _MemoListScreenState extends State<MemoListScreen> {
   }
 }
 
-class MemoComposeScreen extends StatelessWidget {
+class MemoComposeScreen extends StatefulWidget {
+  final List<String>? memo;
+
+  const MemoComposeScreen({super.key, this.memo});
+
+  @override
+  _MemoComposeScreenState createState() => _MemoComposeScreenState();
+}
+
+class _MemoComposeScreenState extends State<MemoComposeScreen> {
   final TextEditingController _memoTitle = TextEditingController();
   final TextEditingController _memoContent = TextEditingController();
 
-  MemoComposeScreen({super.key});
+  @override
+  void initState() {
+    super.initState();
+    if (widget.memo != null) {
+      _memoTitle.text = widget.memo!.isNotEmpty ? widget.memo![0] : '';
+      _memoContent.text = widget.memo!.isNotEmpty ? widget.memo![1] : '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quick Memo'),
+        title: Text(widget.memo != null ? 'Edit Memo' : 'Quick Memo'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
