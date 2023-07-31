@@ -180,7 +180,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
             MaterialPageRoute(builder: (context) => const MemoComposeScreen()),
           );
           if (memo != null) {
-            _addMemo(memo['title'], memo['content']);
+            _addMemo(memo.title, memo.content);
           }
         },
         child: const Icon(Icons.add),
