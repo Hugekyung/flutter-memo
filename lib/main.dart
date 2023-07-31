@@ -56,12 +56,12 @@ class _MemoListScreenState extends State<MemoListScreen> {
 
   // * 메모 추가
   void _addMemo(String title, String content) {
-    if (title.isNotEmpty && content.isNotEmpty) {
+    if (title.isNotEmpty) {
       setState(() {
         memos.add(Memo(title: title, content: content));
         _saveMemos();
       });
-    } else {
+    } else if (title.isEmpty) {
       _showErrorDialog(context);
     }
   }
@@ -73,14 +73,12 @@ class _MemoListScreenState extends State<MemoListScreen> {
 
   // * 메모 업데이트
   void _editMemo(int index) async {
-    final editedMemo = await Navigator.push(
+    final Memo? editedMemo = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => MemoComposeScreen(memo: {
-                'title': memos[index].title,
-                'content': memos[index].content
-              })),
+          builder: (context) => MemoComposeScreen(memo: memos[index])),
     );
+
     if (editedMemo != null) {
       setState(() {
         memos[index] = editedMemo;
@@ -192,7 +190,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
 }
 
 class MemoComposeScreen extends StatefulWidget {
-  final Map<String, dynamic>? memo;
+  final Memo? memo;
 
   const MemoComposeScreen({super.key, this.memo});
 
@@ -208,10 +206,9 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
   void initState() {
     super.initState();
     if (widget.memo != null) {
-      _memoTitle.text =
-          widget.memo!['title'].isNotEmpty ? widget.memo!['title'] : '';
+      _memoTitle.text = widget.memo!.title.isNotEmpty ? widget.memo!.title : '';
       _memoContent.text =
-          widget.memo!['content'].isNotEmpty ? widget.memo!['content'] : '';
+          widget.memo!.content.isNotEmpty ? widget.memo!.content : '';
     }
   }
 
@@ -239,10 +236,8 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                final Map<String, String> newMemo = {
-                  'title': _memoTitle.text,
-                  'content': _memoContent.text
-                };
+                final Memo newMemo =
+                    Memo(title: _memoTitle.text, content: _memoContent.text);
                 Navigator.pop(context, newMemo);
               },
               child: const Text('Save'),
@@ -256,7 +251,7 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
 
 class Memo {
   String title;
-  String content;
+  dynamic content;
 
   Memo({required this.title, required this.content});
 
