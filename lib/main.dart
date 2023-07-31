@@ -163,12 +163,14 @@ class _MemoListScreenState extends State<MemoListScreen> {
               _deleteMemo(index);
             },
             child: ListTile(
-              title: Text(memos[index].title),
+              title: Text(memos[index].title.length > 30
+                  ? '${memos[index].title.substring(0, 31)}...'
+                  : memos[index].title),
               onTap: () => _editMemo(index),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () => _deleteMemo(index),
-              ),
+              // trailing: IconButton(
+              //   icon: const Icon(Icons.delete),
+              //   onPressed: () => _deleteMemo(index),
+              // ),
             ),
           );
         },
