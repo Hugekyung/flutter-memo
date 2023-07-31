@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,17 +28,40 @@ class MemoListScreen extends StatefulWidget {
 }
 
 class _MemoListScreenState extends State<MemoListScreen> {
-  List<List<String>> memos = []; // * 메모를 저장하는 리스트
+  List<Memo> memos = []; // * 메모를 저장하는 리스트
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMemos(); // * 앱 시작 시 저장된 메모 로드
+  }
+
+  void _loadMemos() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? memosString = prefs.getStringList('memos');
+    if (memosString != null) {
+      setState(() {
+        memos =
+            memosString.map((json) => Memo.fromMap(jsonDecode(json))).toList();
+      });
+    }
+  }
+
+  void _saveMemos() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> memosString =
+        memos.map((memo) => jsonEncode(memo.toMap())).toList();
+    prefs.setStringList('memos', memosString);
+  }
 
   // * 메모 추가
-  void _addMemo(List<String> memo) {
-    if (memo[0].isNotEmpty) {
-      // * 제목이 공백이 아닐 경우 메모 생성
+  void _addMemo(String title, String content) {
+    if (title.isNotEmpty && content.isNotEmpty) {
       setState(() {
-        memos.add(memo);
+        memos.add(Memo(title: title, content: content));
+        _saveMemos();
       });
     } else {
-      // * 값이 공백이면 에러 모달
       _showErrorDialog(context);
     }
   }
@@ -50,11 +76,15 @@ class _MemoListScreenState extends State<MemoListScreen> {
     final editedMemo = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => MemoComposeScreen(memo: memos[index])),
+          builder: (context) => MemoComposeScreen(memo: {
+                'title': memos[index].title,
+                'content': memos[index].content
+              })),
     );
     if (editedMemo != null) {
       setState(() {
         memos[index] = editedMemo;
+        _saveMemos(); // 메모가 수정될 때마다 저장
       });
     }
   }
@@ -90,6 +120,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
   void _deleteConfirmed(int index) {
     setState(() {
       memos.removeAt(index);
+      _saveMemos();
     });
   }
 
@@ -122,12 +153,24 @@ class _MemoListScreenState extends State<MemoListScreen> {
       body: ListView.builder(
         itemCount: memos.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(memos[index][0]),
-            onTap: () => _editMemo(index),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => _deleteMemo(index),
+          return Dismissible(
+            key: Key(memos[index].title), // 유니크한 키로 메모의 내용을 사용합니다.
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            onDismissed: (direction) {
+              _deleteMemo(index);
+            },
+            child: ListTile(
+              title: Text(memos[index].title),
+              onTap: () => _editMemo(index),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () => _deleteMemo(index),
+              ),
             ),
           );
         },
@@ -139,7 +182,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
             MaterialPageRoute(builder: (context) => const MemoComposeScreen()),
           );
           if (memo != null) {
-            _addMemo(memo);
+            _addMemo(memo['title'], memo['content']);
           }
         },
         child: const Icon(Icons.add),
@@ -149,7 +192,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
 }
 
 class MemoComposeScreen extends StatefulWidget {
-  final List<String>? memo;
+  final Map<String, dynamic>? memo;
 
   const MemoComposeScreen({super.key, this.memo});
 
@@ -165,8 +208,10 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
   void initState() {
     super.initState();
     if (widget.memo != null) {
-      _memoTitle.text = widget.memo!.isNotEmpty ? widget.memo![0] : '';
-      _memoContent.text = widget.memo!.isNotEmpty ? widget.memo![1] : '';
+      _memoTitle.text =
+          widget.memo!['title'].isNotEmpty ? widget.memo!['title'] : '';
+      _memoContent.text =
+          widget.memo!['content'].isNotEmpty ? widget.memo!['content'] : '';
     }
   }
 
@@ -194,7 +239,10 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                final newMemo = [_memoTitle.text, _memoContent.text];
+                final Map<String, String> newMemo = {
+                  'title': _memoTitle.text,
+                  'content': _memoContent.text
+                };
                 Navigator.pop(context, newMemo);
               },
               child: const Text('Save'),
@@ -202,6 +250,29 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class Memo {
+  String title;
+  String content;
+
+  Memo({required this.title, required this.content});
+
+  // `Memo` 인스턴스를 Map으로 변환하는 메서드
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'content': content,
+    };
+  }
+
+  // Map으로부터 `Memo` 인스턴스를 생성하는 팩토리 메서드
+  factory Memo.fromMap(Map<String, dynamic> map) {
+    return Memo(
+      title: map['title'],
+      content: map['content'],
     );
   }
 }
