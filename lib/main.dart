@@ -29,6 +29,7 @@ class MemoListScreen extends StatefulWidget {
 
 class _MemoListScreenState extends State<MemoListScreen> {
   List<Memo> memos = []; // * 메모를 저장하는 리스트
+  Memo? deletedMemo;
 
   @override
   void initState() {
@@ -98,14 +99,14 @@ class _MemoListScreenState extends State<MemoListScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop('cancel');
               },
               child: const Text('취소'),
             ),
             TextButton(
               onPressed: () {
                 _deleteConfirmed(index);
-                Navigator.of(context).pop();
+                Navigator.of(context).pop('deleted');
               },
               child: const Text('삭제'),
             ),
@@ -151,26 +152,14 @@ class _MemoListScreenState extends State<MemoListScreen> {
       body: ListView.builder(
         itemCount: memos.length,
         itemBuilder: (context, index) {
-          return Dismissible(
-            key: Key(memos[index].title), // 유니크한 키로 메모의 내용을 사용합니다.
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            onDismissed: (direction) {
-              _deleteMemo(index);
-            },
-            child: ListTile(
-              title: Text(memos[index].title.length > 30
-                  ? '${memos[index].title.substring(0, 31)}...'
-                  : memos[index].title),
-              onTap: () => _editMemo(index),
-              // trailing: IconButton(
-              //   icon: const Icon(Icons.delete),
-              //   onPressed: () => _deleteMemo(index),
-              // ),
+          return ListTile(
+            title: Text(memos[index].title.length > 30
+                ? '${memos[index].title.substring(0, 31)}...'
+                : memos[index].title),
+            onTap: () => _editMemo(index),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () => _deleteMemo(index),
             ),
           );
         },
