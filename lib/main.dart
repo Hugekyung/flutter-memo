@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MeMOMO',
+      title: 'Good Memos',
       theme: ThemeData(primarySwatch: Colors.indigo),
       home: const MemoListScreen(),
     );
@@ -28,6 +28,7 @@ class MemoListScreen extends StatefulWidget {
 }
 
 class _MemoListScreenState extends State<MemoListScreen> {
+  Map<String, List<Memo>> groupedMemos = {};
   List<Memo> memos = []; // * 메모를 저장하는 리스트
   Memo? deletedMemo;
 
@@ -45,6 +46,15 @@ class _MemoListScreenState extends State<MemoListScreen> {
         memos =
             memosString.map((json) => Memo.fromMap(jsonDecode(json))).toList();
       });
+
+      // 날짜별로 그룹화해서 저장합니다.
+      groupedMemos = {};
+      for (var memo in memos) {
+        final String groupedKey =
+            '${memo.date.year.toString()}-${memo.date.month.toString()}-${memo.date.day.toString()}';
+        groupedMemos[groupedKey] = groupedMemos[memo.date] ?? [];
+        groupedMemos[groupedKey]!.add(memo);
+      }
     }
   }
 
@@ -56,10 +66,17 @@ class _MemoListScreenState extends State<MemoListScreen> {
   }
 
   // * 메모 추가
-  void _addMemo(String title, String content) {
+  void _addMemo(String title, String content, DateTime date) {
     if (title.isNotEmpty) {
       setState(() {
-        memos.add(Memo(title: title, content: content));
+        final memo = Memo(title: title, content: content, date: date);
+        final String groupedKey =
+            '${memo.date.year.toString()}-${memo.date.month.toString()}-${memo.date.day.toString()}';
+        List<Memo> memosOnDate =
+            groupedMemos[date] ?? []; // * 해당 날짜로 그룹화된 메모 리스트
+        memosOnDate.add(memo); // * 날짜별 메모 리스트에 저장
+        groupedMemos[groupedKey] = memosOnDate; // * 그룹화된 메모 리스트에 저장
+        memos.add(memo); // * 전체 날짜 메모 리스트에 저장
         _saveMemos();
       });
     } else if (title.isEmpty) {
@@ -94,21 +111,24 @@ class _MemoListScreenState extends State<MemoListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('경고'),
-          content: const Text('정말로 이 메모를 삭제하시겠습니까?'),
+          title: const Text(
+            '경고',
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+          content: const Text('Are you sure you want to delete this memo?'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop('cancel');
               },
-              child: const Text('취소'),
+              child: const Text('cancel'),
             ),
             TextButton(
               onPressed: () {
                 _deleteConfirmed(index);
                 Navigator.of(context).pop('deleted');
               },
-              child: const Text('삭제'),
+              child: const Text('deleted'),
             ),
           ],
         );
@@ -128,8 +148,8 @@ class _MemoListScreenState extends State<MemoListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('내용이 없어요.'),
-          content: const Text('메모 내용을 입력해주세요.'),
+          title: const Text('There is no content.'),
+          content: const Text('Please enter the memo content.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -147,18 +167,24 @@ class _MemoListScreenState extends State<MemoListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MeMoMo'),
+        title: const Text('HeyMemo'),
       ),
       body: ListView.builder(
         itemCount: memos.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(memos[index].title.length > 30
-                ? '${memos[index].title.substring(0, 31)}...'
-                : memos[index].title),
+            title: Text(
+              memos[index].title.length > 20
+                  ? '${memos[index].title.substring(0, 21)}...'
+                  : memos[index].title,
+              style:
+                  const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
+            ),
             onTap: () => _editMemo(index),
             trailing: IconButton(
-              icon: const Icon(Icons.delete),
+              icon: const Icon(
+                Icons.delete,
+              ),
               onPressed: () => _deleteMemo(index),
             ),
           );
@@ -171,7 +197,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
             MaterialPageRoute(builder: (context) => const MemoComposeScreen()),
           );
           if (memo != null) {
-            _addMemo(memo.title, memo.content);
+            _addMemo(memo.title, memo.content, memo.date);
           }
         },
         child: const Icon(Icons.add),
@@ -192,10 +218,13 @@ class MemoComposeScreen extends StatefulWidget {
 class _MemoComposeScreenState extends State<MemoComposeScreen> {
   final TextEditingController _memoTitle = TextEditingController();
   final TextEditingController _memoContent = TextEditingController();
+  late DateTime
+      _writedDate; // ! late키워드는 값의 초기화를 뒤로 미루지만, 개발자가 null을 실수로 사용하는것을 막아준다
 
   @override
   void initState() {
     super.initState();
+    _writedDate = widget.memo?.date ?? DateTime.now();
     if (widget.memo != null) {
       _memoTitle.text = widget.memo!.title.isNotEmpty ? widget.memo!.title : '';
       _memoContent.text =
@@ -221,14 +250,17 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
             ),
             TextField(
               controller: _memoContent,
-              maxLines: 5,
+              maxLines: 10,
               decoration: const InputDecoration(hintText: '내용을 적어주세요'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                final Memo newMemo =
-                    Memo(title: _memoTitle.text, content: _memoContent.text);
+                final Memo newMemo = Memo(
+                  title: _memoTitle.text,
+                  content: _memoContent.text,
+                  date: _writedDate,
+                );
                 Navigator.pop(context, newMemo);
               },
               child: const Text('Save'),
@@ -243,22 +275,27 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
 class Memo {
   String title;
   dynamic content;
+  DateTime date;
 
-  Memo({required this.title, required this.content});
+  Memo({required this.title, required this.content, required this.date});
 
   // `Memo` 인스턴스를 Map으로 변환하는 메서드
   Map<String, dynamic> toMap() {
     return {
       'title': title,
       'content': content,
+      'date': date.toIso8601String(),
     };
   }
 
   // Map으로부터 `Memo` 인스턴스를 생성하는 팩토리 메서드
   factory Memo.fromMap(Map<String, dynamic> map) {
     return Memo(
-      title: map['title'],
-      content: map['content'],
-    );
+        title: map['title'],
+        content: map['content'],
+        date: map['date'] != null
+            ? DateTime.parse(map['date'])
+            : DateTime.now() // date가 null인 경우 현재 시간으로 초기화;
+        );
   }
 }
