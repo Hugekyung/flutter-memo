@@ -112,7 +112,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text(
-            '경고',
+            'Warning',
             style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
           ),
           content: const Text('Are you sure you want to delete this memo?'),
@@ -172,6 +172,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
       body: ListView.builder(
         itemCount: memos.length,
         itemBuilder: (context, index) {
+          // todo : 날짜별로 메모를 보여주도록 UI 수정
           return ListTile(
             title: Text(
               memos[index].title.length > 20
@@ -246,12 +247,12 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
             TextField(
               controller: _memoTitle,
               maxLines: 1,
-              decoration: const InputDecoration(hintText: '제목'),
+              decoration: const InputDecoration(hintText: 'Title'),
             ),
             TextField(
               controller: _memoContent,
               maxLines: 10,
-              decoration: const InputDecoration(hintText: '내용을 적어주세요'),
+              decoration: const InputDecoration(hintText: 'Content'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -284,7 +285,8 @@ class Memo {
     return {
       'title': title,
       'content': content,
-      'date': date.toIso8601String(),
+      'date': date
+          .toIso8601String(), // ! Memo 데이터를 JsonEncoding을 하기 위해 DateTime의 타입을 String으로 변경
     };
   }
 
