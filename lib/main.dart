@@ -170,24 +170,48 @@ class _MemoListScreenState extends State<MemoListScreen> {
         title: const Text('HeyMemo'),
       ),
       body: ListView.builder(
-        itemCount: memos.length,
+        itemCount: groupedMemos.length,
         itemBuilder: (context, index) {
-          // todo : 날짜별로 메모를 보여주도록 UI 수정
-          return ListTile(
-            title: Text(
-              memos[index].title.length > 20
-                  ? '${memos[index].title.substring(0, 21)}...'
-                  : memos[index].title,
-              style:
-                  const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
-            ),
-            onTap: () => _editMemo(index),
-            trailing: IconButton(
-              icon: const Icon(
-                Icons.delete,
+          final key = groupedMemos.keys.elementAt(index);
+          final List<Memo> memosOnDate = groupedMemos[key]!;
+          final formattedDate = formatDate(key);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  formattedDate,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
               ),
-              onPressed: () => _deleteMemo(index),
-            ),
+              ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: memosOnDate.length,
+                  itemBuilder: (context, memoIndex) {
+                    return ListTile(
+                      title: Text(
+                        memos[index].title.length > 20
+                            ? '${memos[index].title.substring(0, 21)}...'
+                            : memos[index].title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.normal, fontSize: 18),
+                      ),
+                      onTap: () => _editMemo(index),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                        ),
+                        onPressed: () => _deleteMemo(index),
+                      ),
+                    );
+                  })
+            ],
           );
         },
       ),
@@ -205,6 +229,15 @@ class _MemoListScreenState extends State<MemoListScreen> {
       ),
     );
   }
+}
+
+// * 날짜 포맷 함수
+String formatDate(String dateKey) {
+  final dateParts = dateKey.split('-');
+  final year = dateParts[0];
+  final month = dateParts[1];
+  final day = dateParts[2];
+  return '$year년 $month월 $day일';
 }
 
 class MemoComposeScreen extends StatefulWidget {
