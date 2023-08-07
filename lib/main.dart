@@ -1,7 +1,9 @@
 import 'dart:convert';
-
+import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+var logger = Logger();
 
 void main() {
   runApp(const MyApp());
@@ -176,6 +178,9 @@ class _MemoListScreenState extends State<MemoListScreen> {
           final List<Memo> memosOnDate = groupedMemos[key]!;
           final formattedDate = formatDate(key);
 
+          print(groupedMemos.values);
+          print(memosOnDate);
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -191,7 +196,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
               ),
               ListView.builder(
                   shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  // physics: const NeverScrollableScrollPhysics(),
                   itemCount: memosOnDate.length,
                   itemBuilder: (context, memoIndex) {
                     return ListTile(
