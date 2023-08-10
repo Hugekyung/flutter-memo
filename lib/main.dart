@@ -172,47 +172,44 @@ class _MemoListScreenState extends State<MemoListScreen> {
         title: const Text('HeyMemo'),
       ),
       body: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         itemCount: groupedMemos.length,
         itemBuilder: (context, index) {
           final key = groupedMemos.keys.elementAt(index);
           final List<Memo> memosOnDate = groupedMemos[key]!;
           final formattedDate = formatDate(key);
 
-          print(groupedMemos.values);
-          print(memosOnDate);
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Text(
                   formattedDate,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    fontSize: 23,
                   ),
                 ),
               ),
               ListView.builder(
                   shrinkWrap: true,
-                  // physics: const NeverScrollableScrollPhysics(),
+                  // physics: ScrollPhysics ,
                   itemCount: memosOnDate.length,
                   itemBuilder: (context, memoIndex) {
+                    final memo = memosOnDate[memoIndex];
                     return ListTile(
                       title: Text(
-                        memos[index].title.length > 20
-                            ? '${memos[index].title.substring(0, 21)}...'
-                            : memos[index].title,
+                        memo.title.length > 20
+                            ? '${memo.title.substring(0, 21)}...'
+                            : memo.title,
                         style: const TextStyle(
-                            fontWeight: FontWeight.normal, fontSize: 18),
+                            fontWeight: FontWeight.normal, fontSize: 16),
                       ),
-                      onTap: () => _editMemo(index),
+                      onTap: () => _editMemo(memoIndex),
                       trailing: IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                        ),
-                        onPressed: () => _deleteMemo(index),
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteMemo(memoIndex),
                       ),
                     );
                   })
