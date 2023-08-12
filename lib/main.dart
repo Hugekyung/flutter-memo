@@ -105,6 +105,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
         if (index != -1) {
           memos[index] = editedMemo;
           _saveMemos(); // 메모가 수정될 때마다 저장
+          _loadMemos();
         }
       });
     }
@@ -163,6 +164,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
         logger.d(m.title);
       }
       _saveMemos();
+      _loadMemos();
     });
   }
 
