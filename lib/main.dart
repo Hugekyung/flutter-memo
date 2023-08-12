@@ -66,6 +66,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
     List<String> memosString =
         memos.map((memo) => jsonEncode(memo.toMap())).toList();
     prefs.setStringList('memos', memosString);
+    _loadMemos();
   }
 
   // * 메모 추가
@@ -202,50 +203,26 @@ class _MemoListScreenState extends State<MemoListScreen> {
                     ),
                   ),
                 ),
-                // Column(
-                //   // mainAxisSize: MainAxisSize.min,
-                //   children: memosOnDate
-                //       .map((memo) => ListTile(
-                //             title: Text(
-                //               memo.title.length > 20
-                //                   ? '${memo.title.substring(0, 21)}...'
-                //                   : memo.title,
-                //               style: const TextStyle(
-                //                 fontWeight: FontWeight.normal,
-                //                 fontSize: 16,
-                //               ),
-                //             ),
-                //             onTap: () => _editMemo(memo),
-                //             trailing: IconButton(
-                //               icon: const Icon(Icons.delete),
-                //               onPressed: () => _deleteMemo(memo),
-                //             ),
-                //           ))
-                //       .toList(),
-                // ),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: memosOnDate.length,
-                  itemBuilder: (context, index) {
-                    final memo = memosOnDate[index];
-                    return ListTile(
-                      title: Text(
-                        memo.title.length > 20
-                            ? '${memo.title.substring(0, 21)}...'
-                            : memo.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 16,
-                        ),
-                      ),
-                      onTap: () => _editMemo(memo),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteMemo(memo),
-                      ),
-                    );
-                  },
+                Column(
+                  // mainAxisSize: MainAxisSize.min,
+                  children: memosOnDate
+                      .map((memo) => ListTile(
+                            title: Text(
+                              memo.title.length > 20
+                                  ? '${memo.title.substring(0, 21)}...'
+                                  : memo.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 16,
+                              ),
+                            ),
+                            onTap: () => _editMemo(memo),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteMemo(memo),
+                            ),
+                          ))
+                      .toList(),
                 ),
               ],
             );
