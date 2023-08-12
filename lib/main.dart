@@ -51,7 +51,10 @@ class _MemoListScreenState extends State<MemoListScreen> {
 
       // 날짜별로 그룹화해서 저장합니다.
       groupedMemos = {};
-      for (var memo in memos) {
+      logger.d('총 리스트 길이 >> ${memos.length}');
+      for (int i = memos.length - 1; i >= 0; i--) {
+        logger.d('index >> $i');
+        final Memo memo = memos[i];
         final String groupedKey =
             '${memo.date.year.toString()}-${memo.date.month.toString()}-${memo.date.day.toString()}';
         groupedMemos[groupedKey] = groupedMemos[memo.date] ?? [];
@@ -214,26 +217,50 @@ class _MemoListScreenState extends State<MemoListScreen> {
                     ),
                   ),
                 ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: memosOnDate
-                      .map((memo) => ListTile(
-                            title: Text(
-                              memo.title.length > 20
-                                  ? '${memo.title.substring(0, 21)}...'
-                                  : memo.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.normal,
-                                fontSize: 16,
-                              ),
-                            ),
-                            onTap: () => _editMemo(memo),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () => _deleteMemo(memo),
-                            ),
-                          ))
-                      .toList(),
+                // Column(
+                //   // mainAxisSize: MainAxisSize.min,
+                //   children: memosOnDate
+                //       .map((memo) => ListTile(
+                //             title: Text(
+                //               memo.title.length > 20
+                //                   ? '${memo.title.substring(0, 21)}...'
+                //                   : memo.title,
+                //               style: const TextStyle(
+                //                 fontWeight: FontWeight.normal,
+                //                 fontSize: 16,
+                //               ),
+                //             ),
+                //             onTap: () => _editMemo(memo),
+                //             trailing: IconButton(
+                //               icon: const Icon(Icons.delete),
+                //               onPressed: () => _deleteMemo(memo),
+                //             ),
+                //           ))
+                //       .toList(),
+                // ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: memosOnDate.length,
+                  itemBuilder: (context, index) {
+                    final memo = memosOnDate[index];
+                    return ListTile(
+                      title: Text(
+                        memo.title.length > 20
+                            ? '${memo.title.substring(0, 21)}...'
+                            : memo.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 16,
+                        ),
+                      ),
+                      onTap: () => _editMemo(memo),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteMemo(memo),
+                      ),
+                    );
+                  },
                 ),
               ],
             );
