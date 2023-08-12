@@ -87,28 +87,31 @@ class _MemoListScreenState extends State<MemoListScreen> {
   }
 
   // * 메모 삭제
-  void _deleteMemo(int index) {
-    _showDeleteConfirmationDialog(context, index);
+  void _deleteMemo(Memo memo) {
+    _showDeleteConfirmationDialog(context, memo);
   }
 
   // * 메모 업데이트
-  void _editMemo(int index) async {
+  void _editMemo(Memo memo) async {
     final Memo? editedMemo = await Navigator.push(
       context,
-      MaterialPageRoute(
-          builder: (context) => MemoComposeScreen(memo: memos[index])),
+      MaterialPageRoute(builder: (context) => MemoComposeScreen(memo: memo)),
     );
 
     if (editedMemo != null) {
       setState(() {
-        memos[index] = editedMemo;
-        _saveMemos(); // 메모가 수정될 때마다 저장
+        // * 기존 메모 목록에서 동일한 메모를 찾고, 인덱스 추출
+        final index = memos.indexWhere((element) => element == memo);
+        if (index != -1) {
+          memos[index] = editedMemo;
+          _saveMemos(); // 메모가 수정될 때마다 저장
+        }
       });
     }
   }
 
   // * 메모 삭제 여부 모달
-  void _showDeleteConfirmationDialog(BuildContext context, int index) {
+  void _showDeleteConfirmationDialog(BuildContext context, Memo memo) {
     showDialog(
       context: context,
       builder: (context) {
@@ -127,7 +130,7 @@ class _MemoListScreenState extends State<MemoListScreen> {
             ),
             TextButton(
               onPressed: () {
-                _deleteConfirmed(index);
+                _deleteConfirmed(memo);
                 Navigator.of(context).pop('deleted');
               },
               child: const Text('deleted'),
@@ -138,9 +141,27 @@ class _MemoListScreenState extends State<MemoListScreen> {
     );
   }
 
-  void _deleteConfirmed(int index) {
+  void _deleteConfirmed(Memo memo) {
     setState(() {
-      memos.removeAt(index);
+      logger.d('삭제 전 !!!');
+      for (int i = 0; i < memos.length; i++) {
+        final m = memos[i];
+        logger.d(m.title);
+      }
+
+      for (int i = 0; i < memos.length; i++) {
+        final m = memos[i];
+        if (m.title == memo.title && m.content == memo.content) {
+          memos.remove(m);
+        }
+      }
+
+      logger.d('삭제 후 !!!');
+
+      for (int i = 0; i < memos.length; i++) {
+        final m = memos[i];
+        logger.d(m.title);
+      }
       _saveMemos();
     });
   }
@@ -171,51 +192,51 @@ class _MemoListScreenState extends State<MemoListScreen> {
       appBar: AppBar(
         title: const Text('HeyMemo'),
       ),
-      body: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: groupedMemos.length,
-        itemBuilder: (context, index) {
-          final key = groupedMemos.keys.elementAt(index);
-          final List<Memo> memosOnDate = groupedMemos[key]!;
-          final formattedDate = formatDate(key);
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: groupedMemos.keys.map((key) {
+            final memosOnDate = groupedMemos[key]!;
+            final formattedDate = formatDate(key);
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  formattedDate,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 23,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    formattedDate,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 23,
+                    ),
                   ),
                 ),
-              ),
-              ListView.builder(
-                  shrinkWrap: true,
-                  // physics: ScrollPhysics ,
-                  itemCount: memosOnDate.length,
-                  itemBuilder: (context, memoIndex) {
-                    final memo = memosOnDate[memoIndex];
-                    return ListTile(
-                      title: Text(
-                        memo.title.length > 20
-                            ? '${memo.title.substring(0, 21)}...'
-                            : memo.title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.normal, fontSize: 16),
-                      ),
-                      onTap: () => _editMemo(memoIndex),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteMemo(memoIndex),
-                      ),
-                    );
-                  })
-            ],
-          );
-        },
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: memosOnDate
+                      .map((memo) => ListTile(
+                            title: Text(
+                              memo.title.length > 20
+                                  ? '${memo.title.substring(0, 21)}...'
+                                  : memo.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 16,
+                              ),
+                            ),
+                            onTap: () => _editMemo(memo),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteMemo(memo),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
