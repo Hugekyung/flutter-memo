@@ -51,13 +51,11 @@ class _MemoListScreenState extends State<MemoListScreen> {
 
       // 날짜별로 그룹화해서 저장합니다.
       groupedMemos = {};
-      logger.d('총 리스트 길이 >> ${memos.length}');
       for (int i = memos.length - 1; i >= 0; i--) {
-        logger.d('index >> $i');
         final Memo memo = memos[i];
         final String groupedKey =
             '${memo.date.year.toString()}-${memo.date.month.toString()}-${memo.date.day.toString()}';
-        groupedMemos[groupedKey] = groupedMemos[memo.date] ?? [];
+        groupedMemos[groupedKey] = groupedMemos[groupedKey] ?? [];
         groupedMemos[groupedKey]!.add(memo);
       }
     }
@@ -147,24 +145,11 @@ class _MemoListScreenState extends State<MemoListScreen> {
 
   void _deleteConfirmed(Memo memo) {
     setState(() {
-      logger.d('삭제 전 !!!');
-      for (int i = 0; i < memos.length; i++) {
-        final m = memos[i];
-        logger.d(m.title);
-      }
-
       for (int i = 0; i < memos.length; i++) {
         final m = memos[i];
         if (m.title == memo.title && m.content == memo.content) {
           memos.remove(m);
         }
-      }
-
-      logger.d('삭제 후 !!!');
-
-      for (int i = 0; i < memos.length; i++) {
-        final m = memos[i];
-        logger.d(m.title);
       }
       _saveMemos();
       _loadMemos();
