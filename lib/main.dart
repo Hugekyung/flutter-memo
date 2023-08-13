@@ -16,7 +16,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Good Memos',
-      theme: ThemeData(primarySwatch: Colors.indigo),
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        canvasColor: Colors.indigo[60],
+      ),
       home: const MemoListScreen(),
     );
   }
@@ -181,20 +184,26 @@ class _MemoListScreenState extends State<MemoListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('HeyMemo'),
-      ),
+          // title: const Text('Good Memo',
+          //     style: TextStyle(
+          //       fontSize: 25,
+          //       fontWeight: FontWeight.bold,
+          //       color: Colors.greenAccent,
+          //     )),
+          ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: groupedMemos.keys.map((key) {
             final memosOnDate = groupedMemos[key]!;
+            // final formattedDate = key;
             final formattedDate = formatDate(key);
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(18.0),
                   child: Text(
                     formattedDate,
                     style: const TextStyle(
@@ -204,7 +213,6 @@ class _MemoListScreenState extends State<MemoListScreen> {
                   ),
                 ),
                 Column(
-                  // mainAxisSize: MainAxisSize.min,
                   children: memosOnDate
                       .map((memo) => ListTile(
                             title: Text(
@@ -249,9 +257,10 @@ class _MemoListScreenState extends State<MemoListScreen> {
 String formatDate(String dateKey) {
   final dateParts = dateKey.split('-');
   final year = dateParts[0];
-  final month = dateParts[1];
+  final month =
+      int.parse(dateParts[1]) < 10 ? '0${dateParts[1]}' : dateParts[1];
   final day = dateParts[2];
-  return '$year년 $month월 $day일';
+  return '$year-$month-$day';
 }
 
 class MemoComposeScreen extends StatefulWidget {
@@ -284,10 +293,11 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.memo != null ? 'Edit Memo' : 'Quick Memo'),
+        title: Text(widget.memo != null ? 'Edit Memo' : 'New Memo'),
+        shadowColor: Colors.blueAccent,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(18.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -295,11 +305,13 @@ class _MemoComposeScreenState extends State<MemoComposeScreen> {
               controller: _memoTitle,
               maxLines: 1,
               decoration: const InputDecoration(hintText: 'Title'),
+              cursorColor: Colors.blueAccent,
             ),
             TextField(
               controller: _memoContent,
               maxLines: 10,
               decoration: const InputDecoration(hintText: 'Content'),
+              cursorColor: Colors.blueAccent,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
