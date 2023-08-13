@@ -238,6 +238,11 @@ class _MemoListScreenState extends State<MemoListScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.indigo,
+        elevation: 10,
+        hoverElevation: 10,
+        highlightElevation: 10,
         onPressed: () async {
           final memo = await Navigator.push(
             context,
@@ -247,7 +252,11 @@ class _MemoListScreenState extends State<MemoListScreen> {
             _addMemo(memo.title, memo.content, memo.date);
           }
         },
-        child: const Icon(Icons.add),
+        child: const Icon(
+          Icons.add,
+          size: 40,
+          color: Colors.indigo,
+        ),
       ),
     );
   }
